@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8bit · Steven Lab (live directory)</title>
+  <!-- Pixel font -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET & BODY ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0b0e1a;
+      background-image: 
+        radial-gradient(circle at 20% 30%, #1a2a3a 0%, transparent 30%),
+        radial-gradient(circle at 80% 70%, #1f2c3f 0%, transparent 40%),
+        repeating-linear-gradient(0deg, rgba(0, 255, 200, 0.02) 0px, rgba(0, 255, 200, 0.02) 2px, transparent 2px, transparent 8px);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Press Start 2P', monospace;
+      padding: 1.5rem;
+      image-rendering: pixelated;
+    }
+
+    /* ── CRT PANEL ── */
+    .directory-panel {
+      max-width: 1100px;
+      width: 100%;
+      background: linear-gradient(145deg, #0c141c, #16232b);
+      border: 4px solid #3d7a8a;
+      box-shadow: 
+        0 0 0 2px #1e3b44,
+        0 0 0 6px #0b1419,
+        0 0 20px #00f0ff55,
+        inset 0 0 30px #00e0ff22;
+      padding: 2rem 2rem 2.5rem;
+      border-radius: 28px 28px 20px 20px;
+      position: relative;
+      backdrop-filter: blur(1px);
+    }
+    /* scanline overlay */
+    .directory-panel::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(0deg, 
+        rgba(0, 0, 0, 0.15) 0px, 
+        rgba(0, 0, 0, 0.15) 2px, 
+        transparent 2px, 
+        transparent 6px);
+      pointer-events: none;
+      border-radius: 24px;
+      z-index: 2;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 4px solid #2f7a8a;
+      padding-bottom: 1.2rem;
+      margin-bottom: 2.2rem;
+      position: relative;
+      z-index: 3;
+    }
+    .header h1 {
+      font-size: 1.8rem;
+      letter-spacing: 3px;
+      color: #b3f0ff;
+      text-shadow: 3px 3px 0 #004455, 0 0 15px #00d0ff88;
+      word-break: break-word;
+    }
+    .header h1 span {
+      display: inline-block;
+      background: #1d3a44;
+      padding: 0.1rem 0.8rem;
+      border: 2px solid #4f9fb0;
+      margin-left: 6px;
+      font-size: 1.2rem;
+      color: #aae4ff;
+      box-shadow: inset 0 0 8px #0ff3;
+    }
+    .badge {
+      background: #1d2f3a;
+      border: 2px solid #3b8b9c;
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      color: #a2d9e8;
+      text-transform: uppercase;
+      box-shadow: inset 0 0 10px #00ccff33;
+      letter-spacing: 1.5px;
+      border-radius: 40px;
+    }
+    .badge i { font-style: normal; display: inline-block; animation: blink 1.2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+    /* ── FILE GRID ── */
+    .file-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      position: relative;
+      z-index: 3;
+      min-height: 200px;
+    }
+    .file-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(90deg, #10242b, #1a323b);
+      border: 2px solid #1e4b55;
+      padding: 0.8rem 1.2rem;
+      border-radius: 40px 12px 12px 40px;
+      transition: all 0.15s;
+      box-shadow: inset 0 0 0 1px #2b6a78, 0 2px 0 #0b1a1f;
+      margin-bottom: 6px;
+    }
+    .file-row:hover {
+      background: #1d3f4a;
+      border-color: #4faec2;
+      transform: scale(1.01);
+      box-shadow: inset 0 0 15px #1fd0ff33, 0 0 12px #00ddff44;
+    }
+    .file-icon {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 160px;
+      font-size: 0.9rem;
+      color: #b3e4f0;
+      text-shadow: 2px 2px 0 #002b33;
+      letter-spacing: 0.5px;
+      flex: 2 1 180px;
+    }
+    .file-icon .pixel-icon {
+      display: inline-block;
+      width: 32px; height: 32px;
+      background: #1a3f4a;
+      border: 2px solid #4799aa;
+      box-shadow: inset 0 0 0 2px #0b2f3a, 0 0 0 2px #265b68;
+      text-align: center;
+      line-height: 32px;
+      font-size: 1.3rem;
+      color: #97e5ff;
+      image-rendering: pixelated;
+      flex-shrink: 0;
+    }
+    .file-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.5rem 2rem;
+      font-size: 0.6rem;
+      color: #84bccb;
+      flex: 1 1 200px;
+      justify-content: flex-end;
+    }
+    .file-meta .size {
+      background: #0b2028;
+      padding: 0.3rem 0.8rem;
+      border: 1px solid #2d7280;
+      border-radius: 30px;
+      color: #b7ecff;
+      font-size: 0.6rem;
+      letter-spacing: 0.5px;
+    }
+    .file-meta .date {
+      color: #7bb8c9;
+      font-size: 0.55rem;
+    }
+    .download-btn {
+      background: #0d2b33;
+      border: 2px solid #3a8f9f;
+      color: #cbeeff;
+      padding: 0.3rem 1.2rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.65rem;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 2px 0 #04262e;
+      text-shadow: 0 2px 0 #00222a;
+      letter-spacing: 0.5px;
+      background: #12333d;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .download-btn:hover {
+      background: #1a4957;
+      border-color: #7ad0e6;
+      box-shadow: 0 0 20px #00ddff55;
+      transform: scale(1.02);
+      color: #ffffff;
+    }
+    .download-btn:active { transform: scale(0.95); box-shadow: none; }
+
+    /* ── FOOTER / STATUS ── */
+    .footer-lab {
+      margin-top: 2.5rem;
+      border-top: 3px dashed #2a5f6b;
+      padding-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.55rem;
+      color: #6c9fad;
+      position: relative;
+      z-index: 3;
+    }
+    .footer-lab .status {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      background: #10232b;
+      padding: 0.4rem 1.2rem;
+      border-radius: 40px;
+      border: 1px solid #1e5663;
+    }
+    .status .dot {
+      display: inline-block;
+      width: 12px; height: 12px;
+      background: #44ffbb;
+      border-radius: 0;
+      box-shadow: 0 0 6px #00ffa2;
+      image-rendering: pixelated;
+      border: 1px solid #004433;
+      animation: blink 1.8s infinite;
+    }
+    .footer-lab .hash {
+      background: #0d1c22;
+      padding: 0.2rem 0.9rem;
+      border: 1px solid #2c6a78;
+      border-radius: 30px;
+      color: #7fc3d6;
+      font-size: 0.5rem;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      .directory-panel { padding: 1.5rem 1rem; }
+      .header h1 { font-size: 1.2rem; }
+      .file-row { flex-direction: column; align-items: stretch; gap: 8px; border-radius: 20px; padding: 1rem; }
+      .file-icon { min-width: auto; }
+      .file-meta { justify-content: flex-start; gap: 0.8rem; }
+      .download-btn { align-self: flex-start; padding: 0.4rem 1rem; }
+    }
+    @media (max-width: 480px) {
+      .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .badge { font-size: 0.55rem; }
+    }
+
+    /* loading state */
+    .loading-placeholder {
+      color: #5a8f9a;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 2rem 0;
+      letter-spacing: 1px;
+    }
+    .loading-placeholder .pulse {
+      display: inline-block;
+      animation: blink 1.0s infinite;
+    }
+  </style>
+</head>
+<body>
+<div class="directory-panel">
+  <!-- header -->
+  <div class="header">
+    <h1>📁 OPEN·DIR <span>8bit</span></h1>
+    <div class="badge"><i>⚡</i> STEVE·LAB <i>⚡</i></div>
+  </div>
+
+  <!-- file grid : live update -->
+  <div class="file-grid" id="fileGrid">
+    <div class="loading-placeholder"><span class="pulse">⟳</span> SYNC·EVIDENCE ...</div>
+  </div>
+
+  <!-- footer -->
+  <div class="footer-lab">
+    <div class="status">
+      <span class="dot"></span>
+      <span>LIVE·MOUNT</span>
+      <span style="opacity:0.6;">|</span>
+      <span id="fileCount">0</span>
+    </div>
+    <div class="hash" id="repoHash">SHA1: ···</div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    "use strict";
+
+    // ─── CONFIGURATION ───────────────────────────────────────────────
+    // Replace with your GitHub repo info.
+    // This example uses the public repository of "steven-lab/8bit-forensic"
+    // but you can change to your own username/repo.
+    const GITHUB_USER = 'steven-lab';
+    const GITHUB_REPO  = '8bit-forensic';
+    // optional: if you want to show files from a specific folder, set path (e.g. 'evidence/')
+    const FOLDER_PATH = '';   // empty = root of repo
+
+    // ─── DOM REFS ──────────────────────────────────────────────────
+    const grid = document.getElementById('fileGrid');
+    const fileCountEl = document.getElementById('fileCount');
+    const hashEl = document.getElementById('repoHash');
+
+    // ─── HELPERS ──────────────────────────────────────────────────
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      return d.toISOString().slice(0,10);
+    }
+
+    // map extension → icon & type
+    function getFileType(name) {
+      const ext = name.split('.').pop().toLowerCase();
+      const map = {
+        'img': 'disk-image', 'bin': 'mem', 'txt': 'log', 'log': 'log',
+        'pcap': 'pcap', 'sha': 'hash', 'dat': 'blob', 'csv': 'csv',
+        'pdf': 'report', 'zip': 'archive', 'gz': 'archive', 'tar': 'archive',
+        'jpg': 'image', 'png': 'image', 'gif': 'image'
+      };
+      return map[ext] || 'default';
+    }
+
+    function getIcon(type) {
+      const icons = {
+        'disk-image': '💾', 'mem': '🧠', 'log': '📋', 'pcap': '🌐',
+        'hash': '🔑', 'blob': '📦', 'csv': '📊', 'report': '📄',
+        'archive': '📁', 'image': '🖼️', 'default': '📎'
+      };
+      return icons[type] || icons.default;
+    }
+
+    // ─── FETCH FROM GITHUB API ────────────────────────────────────
+    async function fetchGitHubContents() {
+      // Build API URL: https://api.github.com/repos/:user/:repo/contents/:path
+      let url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FOLDER_PATH}`;
+      // Add a cache-busting param to avoid browser cache (but GitHub API already has ETag)
+      // We'll use a timestamp to force fresh fetch each time.
+      const cacheBuster = `?t=${Date.now()}`;
+      // If FOLDER_PATH is empty, we need to avoid double slash
+      if (FOLDER_PATH === '') {
+        url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents`;
+      }
+      // Append cache buster as a query param (if no '?' already)
+      const separator = url.includes('?') ? '&' : '?';
+      const fullUrl = url + separator + `t=${Date.now()}`;
+
+      try {
+        const response = await fetch(fullUrl, {
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            // If you have a token, you can add it here for higher rate limit:
+            // 'Authorization': 'token YOUR_TOKEN'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        // data is an array of file/directory entries
+        if (!Array.isArray(data)) {
+          // maybe the path is a single file? but we expect a directory.
+          throw new Error('Unexpected API response (not an array)');
+        }
+        return data;
+      } catch (err) {
+        console.warn('Fetch error:', err);
+        return null;
+      }
+    }
+
+    // ─── RENDER FILES ──────────────────────────────────────────────
+    function renderFiles(items) {
+      // clear grid
+      grid.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        grid.innerHTML = `<div class="loading-placeholder" style="padding:2rem 0;">📭 NO·EVIDENCE·FOUND</div>`;
+        fileCountEl.textContent = '0';
+        hashEl.textContent = 'SHA1: EMPTY';
+        return;
+      }
+
+      // filter: only files (ignore directories) – but we can show directories too if you want.
+      // For this demo we show files only (type === 'file')
+      const files = items.filter(item => item.type === 'file');
+
+      if (files.length === 0) {
+        grid.innerHTML = `<div class="loading-placeholder" style="padding:2rem 0;">📂 NO·FILES·IN·DIR</div>`;
+        fileCountEl.textContent = '0';
+        hashEl.textContent = 'SHA1: N/A';
+        return;
+      }
+
+      // sort by name
+      files.sort((a, b) => a.name.localeCompare(b.name));
+
+      // build rows
+      let fragment = document.createDocumentFragment();
+
+      files.forEach(file => {
+        const row = document.createElement('div');
+        row.className = 'file-row';
+
+        const iconType = getFileType(file.name);
+        const iconChar = getIcon(iconType);
+        const sizeStr = file.size !== undefined ? formatBytes(file.size) : '—';
+        const dateStr = file.sha ? formatDate(file.sha) : '—'; // sha is not date, but we use commit date? we use file.sha as fallback.
+
+        // We don't have commit date from contents API. Use a placeholder.
+        // For real date, you'd need to fetch commits. We use '—' for simplicity.
+        // But we can use the 'sha' as a pseudo-id.
+        const displayDate = '—'; // no date from contents API
+
+        // left icon + name
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'file-icon';
+        iconSpan.innerHTML = `
+          <span class="pixel-icon">${iconChar}</span>
+          <span style="word-break: break-word;">${file.name}</span>
+        `;
+
+        // meta
+        const meta = document.createElement('div');
+        meta.className = 'file-meta';
+
+        const sizeSpan = document.createElement('span');
+        sizeSpan.className = 'size';
+        sizeSpan.textContent = sizeStr;
+
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'date';
+        dateSpan.textContent = displayDate;
+
+        // download button – real download from raw URL
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-btn';
+        downloadBtn.innerHTML = '⬇ DL';
+        downloadBtn.setAttribute('aria-label', `Download ${file.name}`);
+
+        // build download URL from GitHub raw
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${FOLDER_PATH}${file.name}`;
+        downloadBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          // trigger download via anchor
+          const a = document.createElement('a');
+          a.href = rawUrl;
+          a.download = file.name;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          // visual feedback
+          this.style.background = '#2b6f7a';
+          this.textContent = '✔';
+          setTimeout(() => {
+            this.style.background = '';
+            this.innerHTML = '⬇ DL';
+          }, 600);
+        });
+
+        meta.appendChild(sizeSpan);
+        meta.appendChild(dateSpan);
+        meta.appendChild(downloadBtn);
+
+        row.appendChild(iconSpan);
+        row.appendChild(meta);
+
+        // row click – subtle feedback
+        row.addEventListener('click', function(e) {
+          if (e.target.tagName === 'BUTTON') return;
+          this.style.borderColor = '#8ae0f0';
+          setTimeout(() => { this.style.borderColor = ''; }, 200);
+        });
+
+        fragment.appendChild(row);
+      });
+
+      grid.appendChild(fragment);
+
+      // update footer
+      fileCountEl.textContent = files.length;
+      // generate a fake hash based on file names + count (just for style)
+      const hashStr = files.map(f => f.sha ? f.sha.slice(0,6) : f.name.slice(0,4)).join('');
+      const shortHash = hashStr.length > 12 ? hashStr.slice(0,12) : hashStr.padEnd(12, '0');
+      hashEl.textContent = `SHA1: ${shortHash.toUpperCase()}`;
+    }
+
+    // ─── REFRESH ──────────────────────────────────────────────────
+    async function refreshDirectory() {
+      // show loading
+      grid.innerHTML = `<div class="loading-placeholder"><span class="pulse">⟳</span> SYNC·EVIDENCE ...</div>`;
+      const items = await fetchGitHubContents();
+      if (items) {
+        renderFiles(items);
+      } else {
+        // error state
+        grid.innerHTML = `<div class="loading-placeholder" style="color:#c97a7a;">⚠️ UNABLE·TO·FETCH · check repo/user</div>`;
+        fileCountEl.textContent = '?';
+        hashEl.textContent = 'SHA1: ERROR';
+      }
+    }
+
+    // ─── INIT & AUTO-UPDATE ──────────────────────────────────────
+    // First load
+    refreshDirectory();
+
+    // Set up periodic refresh (every 30 seconds) – "real-time" for GitHub Pages
+    // You can adjust interval: 15000 = 15s, 30000 = 30s, 60000 = 1min
+    setInterval(refreshDirectory, 30000);
+
+    // Also refresh when page becomes visible again (user switches tab)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        refreshDirectory();
+      }
+    });
+
+    // expose manual refresh to console for debugging
+    window.refreshLab = refreshDirectory;
+
+    console.log('🕵️ Steven Lab · 8bit forensic live directory');
+    console.log(`📡 watching: ${GITHUB_USER}/${GITHUB_REPO}`);
+  })();
+</script>
+</body>
+</html>

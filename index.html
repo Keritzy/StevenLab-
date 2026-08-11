@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StevenLab · Open Directory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0d1117;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: #c9d1d9;
+        }
+
+        .cabinet {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .lab-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .lab-title {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #58a6ff;
+            text-shadow: 0 0 20px rgba(88, 166, 255, 0.15);
+        }
+
+        .lab-title i {
+            color: #f0883e;
+            font-size: 1.8rem;
+        }
+
+        .lab-title span {
+            background: #21262d;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: #8b949e;
+            border: 1px solid #30363d;
+            letter-spacing: 0.5px;
+        }
+
+        .live-badge {
+            background: #1f2937;
+            color: #3fb950;
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid #238636;
+            box-shadow: 0 0 20px rgba(63, 185, 80, 0.1);
+        }
+
+        .live-badge i {
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* ============================================================
+           BREADCRUMB
+           ============================================================ */
+        .breadcrumb {
+            background: #161b22;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #30363d;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb a {
+            color: #58a6ff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: #79c0ff;
+            text-decoration: underline;
+        }
+
+        .breadcrumb .separator {
+            color: #30363d;
+        }
+
+        .breadcrumb .current {
+            color: #8b949e;
+            font-weight: 500;
+        }
+
+        /* ============================================================
+           TOOLBAR
+           ============================================================ */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        .toolbar-left i {
+            color: #58a6ff;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .btn {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #30363d;
+            border-color: #58a6ff;
+        }
+
+        .btn i {
+            font-size: 0.9rem;
+        }
+
+        /* ============================================================
+           DRAWER GRID
+           ============================================================ */
+        .drawer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.2rem;
+        }
+
+        /* ============================================================
+           DRAWER (clickable item)
+           ============================================================ */
+        .drawer {
+            background: #161b22;
+            border-radius: 10px;
+            border-left: 4px solid #30363d;
+            box-shadow: 0 4px 0 #0d1117, 0 6px 12px rgba(0,0,0,0.3);
+            transition: all 0.15s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+        }
+
+        .drawer:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 0 #0d1117, 0 10px 20px rgba(0,0,0,0.5);
+            background: #1c2128;
+            border-left-color: #58a6ff;
+        }
+
+        .drawer:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0d1117;
+        }
+
+        /* Folder specific hover */
+        .drawer[data-type="folder"]:hover {
+            border-left-color: #f0883e;
+        }
+
+        /* ============================================================
+           DRAWER HANDLE
+           ============================================================ */
+        .drawer-handle {
+            padding: 1rem 1rem 0.6rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            min-height: 70px;
+            word-break: break-word;
+        }
+
+        .drawer-handle i {
+            font-size: 1.6rem;
+            width: 2rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .drawer-handle .folder-icon {
+            color: #f0883e;
+        }
+
+        .drawer-handle .script-icon {
+            color: #3fb950;
+        }
+
+        .drawer-handle .file-icon {
+            color: #58a6ff;
+        }
+
+        .drawer-handle .text-icon {
+            color: #8b949e;
+        }
+
+        .drawer-handle .image-icon {
+            color: #d29922;
+        }
+
+        .drawer-handle .archive-icon {
+            color: #da6b6b;
+        }
+
+        .drawer-handle .name {
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        /* ============================================================
+           DRAWER FOOTER
+           ============================================================ */
+        .drawer-footer {
+            margin-top: auto;
+            padding: 0.5rem 1rem 0.7rem 1rem;
+            background: #0d1117;
+            font-size: 0.65rem;
+            color: #8b949e;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #21262d;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+
+        .drawer-footer .size {
+            background: #161b22;
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            border: 1px solid #21262d;
+        }
+
+        .drawer-footer .date {
+            opacity: 0.7;
+        }
+
+        /* ============================================================
+           EMPTY STATE
+           ============================================================ */
+        .empty-cabinet {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #161b22;
+            border-radius: 16px;
+            border: 2px dashed #30363d;
+            color: #8b949e;
+        }
+
+        .empty-cabinet i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+            color: #58a6ff;
+        }
+
+        /* ============================================================
+           LOADING STATE
+           ============================================================ */
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #8b949e;
+        }
+
+        .loading i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #58a6ff;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem 0.8rem;
+            }
+
+            .lab-title {
+                font-size: 1.5rem;
+                flex-wrap: wrap;
+            }
+
+            .lab-header {
+                padding: 1rem;
+            }
+
+            .drawer-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 0.8rem;
+            }
+
+            .drawer-handle {
+                font-size: 0.85rem;
+                padding: 0.8rem 0.8rem 0.4rem 0.8rem;
+                min-height: 60px;
+            }
+
+            .drawer-footer {
+                font-size: 0.55rem;
+                padding: 0.3rem 0.8rem 0.5rem 0.8rem;
+            }
+
+            .breadcrumb {
+                font-size: 0.75rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar-right {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .drawer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .lab-title {
+                font-size: 1.2rem;
+            }
+
+            .lab-title span {
+                font-size: 0.6rem;
+            }
+
+            .live-badge {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="cabinet">
+    <!-- ============================================================
+    HEADER
+    ============================================================ -->
+    <header class="lab-header">
+        <div class="lab-title">
+            <i class="fas fa-flask"></i>
+            StevenLab
+            <span>forensic · cabinet</span>
+        </div>
+        <div class="live-badge">
+            <i class="fas fa-circle"></i> LIVE · MOUNT
+        </div>
+    </header>
+
+    <!-- ============================================================
+    BREADCRUMB
+    ============================================================ -->
+    <div class="breadcrumb" id="breadcrumb">
+        <a href="#" id="breadcrumbRoot"><i class="fas fa-home"></i> /</a>
+        <span class="separator">/</span>
+        <span class="current" id="breadcrumbCurrent">root</span>
+    </div>
+
+    <!-- ============================================================
+    TOOLBAR
+    ============================================================ -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <i class="fas fa-folder-open"></i>
+            <span id="itemCount">Loading...</span>
+        </div>
+        <div class="toolbar-right">
+            <a href="#" class="btn" id="btnParent" style="display:none;">
+                <i class="fas fa-level-up-alt"></i> Parent
+            </a>
+            <button class="btn" id="btnRefresh">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    DRAWER GRID
+    ============================================================ -->
+    <div id="drawerContainer" class="drawer-grid">
+        <div class="loading">
+            <i class="fas fa-spinner fa-pulse"></i>
+            <p>🔬 Mounting forensic cabinet...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+JAVASCRIPT - Open Directory with Clickable Downloads
+============================================================ -->
+<script>
+    (function() {
+        'use strict';
+
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const REPO_OWNER = 'keritzy';
+        const REPO_NAME = 'StevenLab-';
+        const BRANCH = 'main'; // or 'master'
+        const BASE_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/`;
+        const RAW_BASE = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/`;
+
+        // State
+        let currentPath = '';
+        let currentItems = [];
+
+        // ============================================================
+        // DOM References
+        // ============================================================
+        const container = document.getElementById('drawerContainer');
+        const breadcrumbRoot = document.getElementById('breadcrumbRoot');
+        const breadcrumbCurrent = document.getElementById('breadcrumbCurrent');
+        const itemCount = document.getElementById('itemCount');
+        const btnParent = document.getElementById('btnParent');
+        const btnRefresh = document.getElementById('btnRefresh');
+
+        // ============================================================
+        // Helper Functions
+        // ============================================================
+        function getFileType(name, isFolder) {
+            if (isFolder) {
+                return { icon: 'fa-folder', type: 'folder', iconClass: 'folder-icon' };
+            }
+
+            const ext = name.split('.').pop().toLowerCase();
+            const lower = name.toLowerCase();
+
+            // Scripts
+            if (['py', 'js', 'sh', 'bash', 'ps1', 'pl', 'rb', 'go', 'rs', 'lua', 'php', 'ts', 'java', 'c', 'cpp'].includes(ext)) {
+                return { icon: 'fa-code', type: 'script', iconClass: 'script-icon' };
+            }
+            // Text / logs
+            if (['txt', 'log', 'md', 'json', 'xml', 'csv', 'yaml', 'yml', 'conf', 'cfg', 'ini'].includes(ext) || lower.startsWith('readme')) {
+                return { icon: 'fa-file-alt', type: 'file', iconClass: 'text-icon' };
+            }
+            // Images
+            if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'ico', 'webp', 'tiff'].includes(ext)) {
+                return { icon: 'fa-image', type: 'image', iconClass: 'image-icon' };
+            }
+            // Archives / forensic images
+            if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'img', 'dd', 'e01', 'vmdk', 'vhd'].includes(ext)) {
+                return { icon: 'fa-archive', type: 'archive', iconClass: 'archive-icon' };
+            }
+            // Executables
+            if (['exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm', 'appimage'].includes(ext)) {
+                return { icon: 'fa-cog', type: 'file', iconClass: 'file-icon' };
+            }
+            // PDF / Office
+            if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) {
+                return { icon: 'fa-file-pdf', type: 'file', iconClass: 'file-icon' };
+            }
+
+            // Default
+            return { icon: 'fa-file', type: 'file', iconClass: 'file-icon' };
+        }
+
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            const val = parseFloat((bytes / Math.pow(k, i)).toFixed(1));
+            return val + ' ' + sizes[i];
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '—';
+            try {
+                const d = new Date(dateString);
+                return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch {
+                return '—';
+            }
+        }
+
+        function getParentPath(path) {
+            if (!path || path === '') return '';
+            const parts = path.split('/');
+            parts.pop();
+            return parts.join('/');
+        }
+
+        // ============================================================
+        // Render Drawers
+        // ============================================================
+        function renderDrawers(items, path) {
+            if (!items || items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cabinet">
+                        <i class="fas fa-draw-polygon"></i>
+                        <p>📭 This cabinet drawer is empty.</p>
+                        <p style="font-size:0.85rem; margin-top:0.5rem; opacity:0.6;">Path: ${path || '/'}</p>
+                    </div>
+                `;
+                itemCount.textContent = '0 items';
+                return;
+            }
+
+            // Sort: folders first, then files alphabetically
+            const sorted = [...items].sort((a, b) => {
+                const aIsDir = (a.type === 'dir');
+                const bIsDir = (b.type === 'dir');
+                if (aIsDir && !bIsDir) return -1;
+                if (!aIsDir && bIsDir) return 1;
+                return a.name.localeCompare(b.name);
+            });
+
+            let html = '';
+            let folderCount = 0;
+            let fileCount = 0;
+
+            for (const item of sorted) {
+                const isFolder = (item.type === 'dir');
+                if (isFolder) folderCount++;
+                else fileCount++;
+
+                const name = item.name;
+                const typeInfo = getFileType(name, isFolder);
+                const icon = typeInfo.icon;
+                const iconClass = typeInfo.iconClass || 'file-icon';
+
+                // Build the URL for this item
+                let itemUrl = '';
+                if (isFolder) {
+                    // For folders, we'll navigate into them
+                    itemUrl = '#';
+                } else {
+                    // For files, direct download from raw
+                    const filePath = path ? `${path}/${name}` : name;
+                    itemUrl = RAW_BASE + filePath;
+                }
+
+                const size = isFolder ? '' : formatSize(item.size || 0);
+                const date = isFolder ? '' : formatDate(item.html_url || '');
+
+                // Determine if this is a folder or file for the data attribute
+                const dataType = isFolder ? 'folder' : typeInfo.type;
+
+                html += `
+                    <a class="drawer" 
+                       data-type="${dataType}"
+                       data-name="${name}"
+                       data-path="${path || ''}"
+                       data-is-folder="${isFolder}"
+                       href="${itemUrl}"
+                       ${isFolder ? '' : 'download'}
+                       target="${isFolder ? '_self' : '_blank'}"
+                       title="${isFolder ? 'Open folder' : 'Download file'}">
+                        <div class="drawer-handle">
+                            <i class="fas ${icon} ${iconClass}"></i>
+                            <span class="name">${name}</span>
+                        </div>
+                        <div class="drawer-footer">
+                            <span class="size">${isFolder ? '📁 folder' : size}</span>
+                            <span class="date">${isFolder ? '' : date}</span>
+                        </div>
+                    </a>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // Update item count
+            itemCount.textContent = `${folderCount} folder${folderCount !== 1 ? 's' : ''}, ${fileCount} file${fileCount !== 1 ? 's' : ''}`;
+
+            // Attach click handlers for folders (navigation)
+            document.querySelectorAll('.drawer[data-is-folder="true"]').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const name = this.dataset.name;
+                    const currentPath = this.dataset.path;
+                    const newPath = currentPath ? `${currentPath}/${name}` : name;
+                    navigateToPath(newPath);
+                });
+            });
+        }
+
+        // ============================================================
+        // Navigation
+        // ============================================================
+        function navigateToPath(path) {
+            currentPath = path || '';
+            updateBreadcrumb(path);
+            fetchContents(path);
+        }
+
+        function updateBreadcrumb(path) {
+            if (!path || path === '') {
+                breadcrumbCurrent.textContent = 'root';
+                btnParent.style.display = 'none';
+                return;
+            }
+
+            const parts = path.split('/');
+            const last = parts[parts.length - 1];
+            breadcrumbCurrent.textContent = last;
+
+            // Show parent button if we're not at root
+            btnParent.style.display = 'inline-flex';
+        }
+
+        // ============================================================
+        // Fetch Contents from GitHub API
+        // ============================================================
+        async function fetchContents(path) {
+            const apiPath = path ? `${BASE_URL}${path}` : BASE_URL;
+
+            // Show loading
+            container.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                    <p>🔬 Loading ${path || 'root'}...</p>
+                </div>
+            `;
+            itemCount.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(apiPath, {
+                    headers: { 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error(`Path not found: ${path || 'root'}`);
+                    }
+                    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // GitHub API returns array for directory, object for file
+                if (Array.isArray(data)) {
+                    currentItems = data;
+                    renderDrawers(data, path);
+                } else if (data && data.type === 'file') {
+                    // If it's a file, redirect to raw download
+                    window.location.href = data.download_url || RAW_BASE + path;
+                } else {
+                    throw new Error('Unexpected response from GitHub API');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                container.innerHTML = `
+                    <div class="empty-cabinet" style="border-color: #da6b6b;">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <p>⚠️ UNABLE · TO · FETCH</p>
+                        <p style="font-size:0.85rem; opacity:0.7; margin-top:0.5rem;">${error.message}</p>
+                        <button class="btn" onclick="location.reload();" style="margin-top:1.2rem;">
+                            <i class="fas fa-rotate-right"></i> Retry
+                        </button>
+                    </div>
+                `;
+                itemCount.textContent = 'Error';
+            }
+        }
+
+        // ============================================================
+        // Parent Navigation
+        // ============================================================
+        function goToParent() {
+            if (!currentPath || currentPath === '') return;
+            const parent = getParentPath(currentPath);
+            navigateToPath(parent);
+        }
+
+        // ============================================================
+        // Refresh
+        // ============================================================
+        function refresh() {
+            fetchContents(currentPath);
+        }
+
+        // ============================================================
+        // Event Listeners
+        // ============================================================
+        btnParent.addEventListener('click', function(e) {
+            e.preventDefault();
+            goToParent();
+        });
+
+        btnRefresh.addEventListener('click', function(e) {
+            e.preventDefault();
+            refresh();
+        });
+
+        breadcrumbRoot.addEventListener('click', function(e) {
+            e.preventDefault();
+            navigateToPath('');
+        });
+
+        // ============================================================
+        // Initialize
+        // ============================================================
+        // Load the root directory on start
+        navigateToPath('');
+
+        // Expose refresh to console for debugging
+        window.refreshCabinet = refresh;
+
+        console.log('🔬 StevenLab Cabinet mounted!');
+        console.log(`📂 Repository: ${REPO_OWNER}/${REPO_NAME}`);
+        console.log(`🌿 Branch: ${BRANCH}`);
+        console.log('💡 Click folders to navigate, files to download.');
+    })();
+</script>
+</body>
+</html>
